@@ -15,6 +15,9 @@ def clean_lines(lines):
     """
     Returns the text that are present in a file after removing formating
     marks
+
+    :param lines: List of plain text lines
+    :type lines: list[str]
     """
     for line in lines:
         orginal = line.strip()
@@ -26,7 +29,16 @@ def clean_lines(lines):
             yield line
 
 class Morphodita(object):
+    """
+    A wrapper class for stuff needed fro working with Moprhodita.
+    """
     def __init__(self, model_file):
+        """
+        Instantiates Morphodita from a provided model file.
+
+        :param model_file: Path to the model file,
+        :type model_file: str
+        """
         from ufal.morphodita import Tagger, Forms, TaggedLemmas, TokenRanges
         self.tagger = Tagger.load(model_file)
         self.forms = Forms()
@@ -35,22 +47,47 @@ class Morphodita(object):
         self.tokenizer = self.tagger.newTokenizer()
 
     def normalize(self, text):
+        """
+        Returns lematized nouns and adjectives from a provided text.
+
+        :param text: Text to be processed
+        :type text: str
+        """
         self.tokenizer.setText(text)
         lemmas = []
         while self.tokenizer.nextSentence(self.forms, self.tokens):
             self.tagger.tag(self.forms, self.lemmas)
             lemmas += [l.lemma.lower() for l in self.lemmas \
                     if (l.tag == 'NN' or l.tag == 'AA') and len(l.lemma) > 2 and l.lemma not in stopwords]
-        return lemmas
+        return lemmas, len(self.lemmas)
 
 
 def get_keywords(lines, tagger, idf_doc_count, idf_table):
+    """
+    Finds keywords in the provided lines of text using the tf-idf measure.
+
+    :param lines: Preprocessed lines of text
+    :type lines: list[str]
+
+    :param tagger: Loaded Morphodita model for normalization of the text
+    :type tagger: Morphodita
+
+    :param idf_doc_count: Number of documents used for creating the idf table
+    :type idf_doc_count: int
+
+    :param idf_table: Precomputed IDF table.
+    :type idf_table: dict
+
+    """
     word_stat = {}
     word_count = 0
     response = {}
 
+    morphodita_calls = 0
     for line in clean_lines(lines):
-        for w in tagger.normalize(line):
+        norm_words, line_call_count = tagger.normalize(line)
+        morphodita_calls += line_call_count
+        for w in norm_words:
             if w not in word_stat:
                 word_stat[w] = 0
             word_stat[w] += 1
@@ -69,11 +106,13 @@ def get_keywords(lines, tagger, idf_doc_count, idf_table):
     keywords = sorted_terms[:2] + [t for t in  sorted_terms[2:] if tf_idf[t] >= 0.2]
     response['keywords'] = keywords
     response['scores'] = [tf_idf[k] for k in keywords]
+    response['morphodita_calls'] = morphodita_calls
     return response
 
 
 
 if __name__ == "__main__":
+    # TESTING KER ON PROVIDED DATASET
     if sys.stdout.encoding != 'UTF-8':
             sys.stdout = codecs.getwriter('utf-8')(sys.stdout, 'strict')
     tagger = Morphodita("/net/projects/morphodita/models/czech-morfflex-pdt-131112/czech-morfflex-pdt-131112-pos_only-raw_lemmas.tagger")

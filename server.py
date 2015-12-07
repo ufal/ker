@@ -15,10 +15,13 @@ import zipfile
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = "uploads"
-tagger = None
-idf_doc_count = None
-idf_table = None
+cs_tagger = None
+cs_idf_doc_count = None
+cs_idf_table = None
 
+en_tagger = None
+en_idf_doc_count = None
+en_idf_table = None
 
 @app.route('/')
 def index():
@@ -63,10 +66,16 @@ def process_file(file_path):
 
     if not lines:
         return {"Error": "Empty file"}, 200
-    return keywords.get_keywords(lines, tagger, idf_doc_count, idf_table), 200
+    return keywords.get_keywords(lines, cs_tagger, cs_idf_doc_count, cs_idf_table), 200
 
 
 def lines_from_txt_file(file_path, encoding='utf-8'):
+    """
+    Loads lines of text from a plain text file.
+
+    :param file_path: Path to the alto file or a file-like object.
+
+    """
     if type(file_path) is str:
         f = codecs.open(file_path, 'r', encoding)
     else:
@@ -77,6 +86,12 @@ def lines_from_txt_file(file_path, encoding='utf-8'):
 
 
 def lines_from_alto_file(file_path):
+    """
+    Loads lines of text from a provided alto file.
+
+    :param file_path: Path to the alto file or a file-like object.
+
+    """
     e = xml.etree.ElementTree.parse(file_path).getroot()
     layout = None
     for c in e.getchildren():
@@ -105,6 +120,14 @@ def lines_from_alto_file(file_path):
                     yield " ".join(line_words)
 
 def lines_from_zip_file(file_path):
+    """
+    Loads lines of text from a provided zip file. If it contains alto file, it
+    uses them, otherwise looks for txt files. Files can in an arbitrary depth.
+
+    :param file_path: Path to the uploaded zip file.
+    :type file_path: str
+
+    """
     archive = zipfile.ZipFile(file_path)
     alto_files = [n for n in archive.namelist() if n.endswith(".alto")]
     if alto_files:
@@ -121,15 +144,24 @@ def lines_from_zip_file(file_path):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Runs the KER server.')
-    parser.add_argument("--cs-morphodita", help="Path to Czech model for morphodita.")
-    parser.add_argument("--cs-idf", help="Czech idf model.")
+    parser.add_argument("--cs-morphodita", help="Path to a Czech tagger model for Morphodita.", required=True)
+    parser.add_argument("--cs-idf", help="Czech idf model.", required=True)
+    parser.add_argument("--en-morphodita", help="Path to a English tagger model for Morphodita.", required=True)
+    parser.add_argument("--en-idf", help="English idf model.", required=True)
     args = parser.parse_args()
 
-    tagger = keywords.Morphodita(args.cs_morphodita)
+    cs_tagger = keywords.Morphodita(args.cs_morphodita)
 
     f_idf = open(args.cs_idf, 'rb')
-    idf_doc_count = float(pickle.load(f_idf))
-    idf_table = pickle.load(f_idf)
+    cs_idf_doc_count = float(pickle.load(f_idf))
+    cs_idf_table = pickle.load(f_idf)
+    f_idf.close()
+
+    en_tagger = keywords.Morphodita(args.en_morphodita)
+
+    f_idf = open(args.en_idf, 'rb')
+    en_idf_doc_count = float(pickle.load(f_idf))
+    en_idf_table = pickle.load(f_idf)
     f_idf.close()
 
     app.run(debug=True)

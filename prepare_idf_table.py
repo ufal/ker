@@ -7,8 +7,8 @@ import bz2
 import sys, os
 from process import Morphodita
 
-def main(wiki_root):
-    tagger = Morphodita("/net/projects/morphodita/models/czech-morfflex-pdt-131112/czech-morfflex-pdt-131112-pos_only-raw_lemmas.tagger")
+def main(wiki_root, morphodita_model_file, output):
+    tagger = Morphodita(morphodita_model_file)
     word_document_counts = {}
     document_count = 0
 
@@ -19,10 +19,12 @@ def main(wiki_root):
             continue
         print "Processing "+dir_path
         for f in os.listdir(dir_path):
-            if not f.endswith(".bz2"):
-                continue
             file_path = os.path.join(dir_path, f)
-            f_wiki = bz2.BZ2File(file_path, 'r')
+            f_wiki = None
+            if f.endswith(".bz2"):
+                f_wiki = bz2.BZ2File(file_path, 'r')
+            else:
+                f_wiki = open(file_path, 'r')
             try:
                 for line in f_wiki:
                     if line.startswith('</doc'):
@@ -42,12 +44,19 @@ def main(wiki_root):
             finally:
                 f_wiki.close()
 
-    f_idf = open("idf_table.pickle", 'wb')
+    f_idf = open(output, 'wb')
     pickle.dump(document_count, f_idf)
     pickle.dump(word_document_counts, f_idf)
     f_idf.close()
 
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    import argparse
+    parser = argparse.ArgumentParser(description='Prepares the IDF model pro preprocessed wikipedia articles')
+    parser.add_argument("--morphodita", help="Path to Morphodita model.")
+    parser.add_argument("--wiki", help="Path to root directory of preprocessed wikipedia.")
+    parser.add_argument("--output", help="Output file.")
+    args = parser.parse_args()
+
+    main(args.wiki, args.morphodita, args.output)
 
