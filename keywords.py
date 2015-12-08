@@ -105,7 +105,7 @@ def get_keywords(lines, tagger, idf_doc_count, idf_table):
     sorted_terms = sorted(word_stat.keys(), key=lambda x: -tf_idf[x])
     keywords = sorted_terms[:2] + [t for t in  sorted_terms[2:] if tf_idf[t] >= 0.2]
     response['keywords'] = keywords
-    response['scores'] = [tf_idf[k] for k in keywords]
+    response['keyword_scores'] = [tf_idf[k] for k in keywords]
     response['morphodita_calls'] = morphodita_calls
     return response
 

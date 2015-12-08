@@ -1,4 +1,7 @@
 **/.history-*
 **/*.pyc
+**/*.swp
+*.pickle
 uploads/*
 ker-env
+balicky

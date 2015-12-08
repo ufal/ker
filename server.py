@@ -31,26 +31,52 @@ def index():
 @app.route('/', methods=['POST'])
 def post_request():
     file = request.files['file']
-    post_id = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")+\
-            str(random.randint(10000, 99999))
-    post_dir = os.path.join(app.config['UPLOAD_FOLDER'], post_id)
-    os.mkdir(post_dir)
 
-    file_name = secure_filename(file.filename)
-    file_path = os.path.join(post_dir, file_name)
-    file.save(os.path.join(file_path))
+    tagger = cs_tagger
+    idf_doc_count = cs_idf_doc_count
+    idf_table = cs_idf_table
 
-    data, code = process_file(file_path)
-    json_response = json.dumps(data).encode('utf-8')
+    json_response = None
 
-    response = flask.Response(json_response,
-                              content_type='application/json; charset=utf-8')
-    response.headers.add('content-length', len(json_response))
-    response.status_code = code
-    return response
+    try:
+        if request.args.get('language') == 'en':
+            tagger = en_tagger
+            idf_doc_count = en_idf_doc_count
+            idf_table = en_idf_table
+        elif request.args.get('language') == 'cs':
+            pass
+        elif request.args.get('language'):
+            raise Exception('Unsupported language {}'.format(request.args.get('language')))
+
+        post_id = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")+\
+                str(random.randint(10000, 99999))
+        post_dir = os.path.join(app.config['UPLOAD_FOLDER'], post_id)
+        os.mkdir(post_dir)
+
+        file_name = secure_filename(file.filename)
+        file_path = os.path.join(post_dir, file_name)
+        file.save(os.path.join(file_path))
+
+        data, code = process_file(file_path, tagger, idf_doc_count, idf_table)
+        json_response = json.dumps(data).decode('unicode-escape')
+    except Exception as e:
+        code = 400
+        json_response = json.dumps({"error": e.message})
+    finally:
+        print json_response
+        response = flask.Response(json_response,
+                                  content_type='application/json; charset=utf-8')
+        response.headers.add('content-length', len(json_response))
+        response.status_code = code
+        return response
 
 
-def process_file(file_path):
+def process_file(file_path, tagger, idf_doc_count, idf_table):
+    """
+    Takes the uploaded file, detecs its type (plain text, alto XML, zip)
+    and calls a parsing function accordingly. If everything succeeds it
+    returns keywords and 200 code, returns an error otherwise.
+    """
     file_info = magic.from_file(file_path)
     lines = []
     if re.match("^UTF-8 Unicode (with BOM) text", file_info):
@@ -62,11 +88,11 @@ def process_file(file_path):
     elif re.match('^Zip archive data', file_info):
         lines = lines_from_zip_file(file_path)
     else:
-        return {"Eror": "Unsupported file type: {}".format(file_info)}, 200
+        return {"eror": "Unsupported file type: {}".format(file_info)}, 400
 
     if not lines:
-        return {"Error": "Empty file"}, 200
-    return keywords.get_keywords(lines, cs_tagger, cs_idf_doc_count, cs_idf_table), 200
+        return {"error": "Empty file"}, 400
+    return keywords.get_keywords(lines, tagger, idf_doc_count, idf_table), 200
 
 
 def lines_from_txt_file(file_path, encoding='utf-8'):
