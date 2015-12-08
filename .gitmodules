@@ -1,0 +1,4 @@
+[submodule "lindat-common"]
+	path = lindat-common
+	url = https://github.com/ufal/lindat-common.git
+	branch = releases
