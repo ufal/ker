@@ -13,14 +13,16 @@
 <!--<a class="brand" href="#"><img src="Cesilko_icon.png" width="50" height="30"></a>-->
         <div class="nav-collapse">
             <ul class="nav">
-                <li class="active"><a href="" class="show-run-icon">Run</a></li>
-                <li><a href="">REST API Documentation</a></li>
+                <li id="demoLi"><a href="javascript:showDemo();" class="show-run-icon">Run</a></li>
+                <li id="docLi"><a href="javascript:showDoc();">REST API Documentation</a></li>
                 <li><a class="pull-right signon" href="#" ><i class="icon-user"> </i>Login</a></li>
             </ul>
         </div>
     </div>
 </div>
 
+
+<div id="demo">
 <p> Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur tempor
 lectus sed odio elementum, at fermentum sapien fermentum. Mauris interdum
 sollicitudin diam at ultricies. Integer tempor lectus vitae mi scelerisque
@@ -32,6 +34,26 @@ dignissim non enim quis posuere. Donec ornare metus efficitur lobortis
 volutpat. Cras eu auctor velit. Duis malesuada arcu eu nisi malesuada, vel
 scelerisque sapien egestas. Aenean volutpat nisi metus, at pharetra erat
 faucibus at. Nulla eu laoreet leo, eget mattis dui.  </p>
+
+<fieldset>
+    langugage: <select id="language">
+        <option>cs</option>
+        <option>en</option>
+    </select>  <br />
+    file with content: <input id="file" type="file" /> <br />
+
+    <button class="btn btn-primary" onclick="javascript:submitQuery();">Extract keywords</button>
+</fieldset>
+
+</div>
+
+<div id="doc">
+
+    <h4>Introduction</h4>
+
+    <h4>API Reference</h4>
+
+</div>
 
 
 </body>
