@@ -14,7 +14,7 @@ import xml.etree.ElementTree
 import zipfile
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = "uploads"
+upload_dir = "uploads"
 cs_tagger = None
 cs_idf_doc_count = None
 cs_idf_table = None
@@ -30,6 +30,7 @@ def index():
 
 @app.route('/', methods=['POST'])
 def post_request():
+    start_time = datetime.datetime.now()
     file = request.files['file']
 
     tagger = cs_tagger
@@ -48,22 +49,33 @@ def post_request():
         elif request.args.get('language'):
             raise Exception('Unsupported language {}'.format(request.args.get('language')))
 
-        post_id = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")+\
+        post_id = datetime.datetime.now().strftime("%Y-%m-%d/%H/%M-%S-")+\
                 str(random.randint(10000, 99999))
-        post_dir = os.path.join(app.config['UPLOAD_FOLDER'], post_id)
-        os.mkdir(post_dir)
+        post_dir = os.path.join(upload_dir, post_id)
+        os.makedirs(post_dir)
 
         file_name = secure_filename(file.filename)
         file_path = os.path.join(post_dir, file_name)
         file.save(os.path.join(file_path))
 
         data, code = process_file(file_path, tagger, idf_doc_count, idf_table)
-        json_response = json.dumps(data).decode('unicode-escape')
     except Exception as e:
         code = 400
-        json_response = json.dumps({"error": e.message})
+        data = {"error": e.message}
     finally:
+        json_response = json.dumps(data).decode('unicode-escape')
         print json_response
+
+        log = {}
+        log['remote_addr'] = request.remote_addr
+        log['response_json'] = data
+        log['response_code'] = code
+        log['time'] = start_time.strftime("%Y-%m-%d %H:%M:%S")
+        log['duration'] = (datetime.datetime.now() - start_time).total_seconds()
+        f_log = open(os.path.join(post_dir, "log.json"), 'w')
+        json.dump(log, f_log)
+        f_log.close()
+
         response = flask.Response(json_response,
                                   content_type='application/json; charset=utf-8')
         response.headers.add('content-length', len(json_response))
