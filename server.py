@@ -5,7 +5,7 @@ from flask import Flask
 from flask import request
 from werkzeug import secure_filename
 import os, random, datetime, codecs
-import json, magic
+import sys, json, magic
 import cPickle as pickle
 import regex as re
 import keywords
@@ -188,18 +188,34 @@ if __name__ == '__main__':
     parser.add_argument("--en-idf", help="English idf model.", required=True)
     args = parser.parse_args()
 
-    cs_tagger = keywords.Morphodita(args.cs_morphodita)
+    if os.path.exists(args.cs_morphodita):
+        cs_tagger = keywords.Morphodita(args.cs_morphodita)
+    else:
+        print >> sys.stderr, "File with Czech Morphodita model does not exist: {}".format(args.cs_morphodita)
+        exit(1)
 
-    f_idf = open(args.cs_idf, 'rb')
-    cs_idf_doc_count = float(pickle.load(f_idf))
-    cs_idf_table = pickle.load(f_idf)
-    f_idf.close()
+    if os.path.exists(args.cs_idf):
+        f_idf = open(args.cs_idf, 'rb')
+        cs_idf_doc_count = float(pickle.load(f_idf))
+        cs_idf_table = pickle.load(f_idf)
+        f_idf.close()
+    else:
+        print >> sys.stderr, "File with Czech IDF model does not exist: {}".format(args.cs_idf)
+        exit(1)
 
-    en_tagger = keywords.Morphodita(args.en_morphodita)
+    if os.path.exists(args.en_morphodita):
+        en_tagger = keywords.Morphodita(args.en_morphodita)
+    else:
+        print >> sys.stderr, "File with English Morphodita model does not exist: {}".format(args.en_morphodita)
+        exit(1)
 
-    f_idf = open(args.en_idf, 'rb')
-    en_idf_doc_count = float(pickle.load(f_idf))
-    en_idf_table = pickle.load(f_idf)
-    f_idf.close()
+    if os.path.exists(args.en_idf):
+        f_idf = open(args.en_idf, 'rb')
+        en_idf_doc_count = float(pickle.load(f_idf))
+        en_idf_table = pickle.load(f_idf)
+        f_idf.close()
+    else:
+        print >> sys.stderr, "File with English IDF model does not exist: {}".format(args.en_idf)
+        exit(1)
 
     app.run(debug=True)
