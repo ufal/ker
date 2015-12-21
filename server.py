@@ -186,6 +186,7 @@ if __name__ == '__main__':
     parser.add_argument("--cs-idf", help="Czech idf model.", required=True)
     parser.add_argument("--en-morphodita", help="Path to a English tagger model for Morphodita.", required=True)
     parser.add_argument("--en-idf", help="English idf model.", required=True)
+    parser.add_argument("--port", help="Port the server runs on", type=int, default=5000)
     args = parser.parse_args()
 
     if os.path.exists(args.cs_morphodita):
@@ -218,4 +219,4 @@ if __name__ == '__main__':
         print >> sys.stderr, "File with English IDF model does not exist: {}".format(args.en_idf)
         exit(1)
 
-    app.run(debug=True)
+    app.run(debug=True, port=args.port)
