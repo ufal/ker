@@ -25,7 +25,23 @@ en_idf_table = None
 
 @app.route('/')
 def index():
-    return "OK\n"
+    return "{}\n"
+
+def root_dir():  # pragma: no cover
+        return os.path.abspath(os.path.dirname(__file__))
+
+def get_file(file_name):
+    try:
+        src = os.path.join(root_dir(), file_name)
+        return open(src).read()
+    except IOError as exc:
+        return str(exc)
+
+@app.route('/web', methods=['GET'])
+def show_web():
+    content = get_file("web.html")
+    print content
+    return flask.Response(content, mimetype="text/html")
 
 
 @app.route('/', methods=['POST'])
