@@ -1,0 +1,221 @@
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible" />
+  <title>KER</title>
+  <meta content="width=device-width" name="viewport" />
+  <meta content="Language Resources, Infrastructure, Research,           Natural Language Processing, Multimedia, Czech language, Computational           Linguistics, Speech, Text, Corpus, Corpora" name="keywords" />
+  <meta content="LINDAT CLARIN Research Infrastructure" name="description" />
+
+  <link rel="stylesheet" href="https://lindat.mff.cuni.cz/common-theme/public/css/lindat.css" type="text/css" />
+
+
+
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js" type="text/javascript"> </script>
+  <script type="text/javascript">
+function showDemo(){
+    $("#demo").show();
+    $("#doc").hide();
+
+    $("#demoLi").addClass("active");
+    $("#docLi").removeClass("active");
+}
+
+function showDoc() {
+    $("#doc").show();
+    $("#demo").hide();
+
+    $("#docLi").addClass("active");
+    $("#demoLi").removeClass("active");
+}
+
+function submitQuery() {
+    file = $("#file").get(0).files[0];
+    //alert(file.size);
+    alert(file.name);
+}
+
+$(function () {
+    document.domain = "cuni.cz";
+    showDemo();
+
+    $('#header').load("https://lindat.mff.cuni.cz/common/header-services-standalone.htm");
+    $('#footer').load("https://lindat.mff.cuni.cz/common/footer-services-standalone.htm");
+
+    $('#submitButton').click(function(){
+        var formData = new FormData($('form')[0]);
+        var url = 'http://quest.ms.mff.cuni.cz:6380';
+
+        function createCORSRequest(method, url){
+                var xhr = new XMLHttpRequest();
+            if ("withCredentials" in xhr){
+                xhr.open(method, url, true);
+            } else if (typeof XDomainRequest != "undefined"){
+                xhr = new XDomainRequest();
+                xhr.open(method, url);
+            } else {
+                xhr = null;
+            }
+            return xhr;
+        }
+
+        // TODO VALIDATE FILE
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            crossDomain: true,
+            dataType : 'json',
+            /*xhr: function() {  // Custom XMLHttpRequest
+                var myXhr = $.ajaxSettings.xhr();
+                if(myXhr.upload){ // Check if upload property exists
+                    //myXhr.upload.addEventListener('progress', progressHandlingFunction, false); // For handling the progress of the upload
+                }
+                return myXhr;
+            },*/
+            xhr: createCORSRequest('POST', url),
+
+            //Ajax events
+            beforeSend: function() { alert(formData); },
+            success: function(data) { alert(data); },
+            error: function() { alert("An error during communication with the server."); },
+
+            // Form data
+            data: formData,
+
+            //Options to tell jQuery not to process data or worry about content-type.
+            cache: false,
+            contentType: false,
+            processData: false
+        });
+    });
+
+
+});
+
+    </script>
+
+    <base href="http://quest.ms.mff.cuni.cz:6380" />
+    <style>
+     object { width: 100%; border: 0px; }
+    </style>
+</head>
+
+<body id="lindat-tools">
+<!--<object id="haeader" type="text/html" data="https://lindat.mff.cuni.cz/common/header-services-standalone.htm" onload="setIframeHeight(this);"></object>-->
+<div id="header"></div>
+
+<div class="container">
+
+    <!-- breadcrumb -->
+    <ul class="breadcrumb">
+        <li><a href="http://lindat.mff.cuni.cz/">LINDAT/CLARIN</a> <span class="divider">/</span></li>
+        <li><a href="http://lindat.mff.cuni.cz/services/">Services</a> <span class="divider">/</span></li>
+        <li class="active">KER</li>
+    </ul>
+
+    <div class="tcenter">
+        <h1>KER - Keyword Extractor</h1>
+    </div>
+
+    <div class="navbar center">
+        <div class="navbar-inner">
+
+            <div class="nav-collapse">
+                <ul class="nav">
+                    <li id="demoLi"><a class="show-run-icon" href="javascript:showDemo();">Run</a></li>
+                    <li id="docLi"><a href="javascript:showDoc();">REST API Documentation</a></li>
+                    <!--<li><a class="pull-right signon" href="#"><i class="icon-user"> </i>Login</a></li>-->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="dropdown pull-right">
+
+        <div id="demo">
+
+            <p>KER is a keyword extractor that was designed for
+            scanned texts in Czech and English. It is based on the stadard
+            <a href="https://en.wikipedia.org/wiki/Tf%E2%80%93idf">tf-idf algorithm</a>
+            with the idf tables trained on texts from
+            Wikipedia. To deal with the data sparsity, texts are preprocessed
+            by <a href="http://lindat.mff.cuni.cz/services/morphodita/">Morphodita</a>:
+            morphological dictionary and tagger. </p>
+
+            <fieldset><form>
+                langugage: <select id="language">
+                    <option>cs</option>
+                    <option>en</option>
+                </select>  <br />
+                file with content: <input id="file" type="file" /> <br />
+
+                <input type="button" class="btn btn-primary" id="submitButton" value="Extract keywords" /></form>
+            </fieldset>
+        </div>
+
+        <div id="doc">
+
+            <h4>Introduction</h4>
+
+            This section serves as a reference how to use KER via the REST API. The
+            service supports standard HTTP request and returns its output in the
+            JSON format.
+
+            <h4>Request</h4>
+
+            <table border='1' class='table table-bordered'>
+                <tr align="left">
+                    <th>#</th>
+                    <th>Parameter</th>
+                    <th>Mandatory</th>
+                    <th>Data type</th>
+                    <th>Description</th>
+                </tr>
+                <tr align="left">
+                    <td>1</td>
+                    <td>file</td>
+                    <td>yes</td>
+                    <td>file</td>
+                    <td>Plain-text file, ALTO XML file or a zip archive containing multiple files.</td>
+                <tr>
+                <tr align="left">
+                    <td>2</td>
+                    <td>language</td>
+                    <td>no</td>
+                    <td>string</td>
+                    <td>Language the text is in. Supported langugaes are <b>cs</b> and <b>en</b>. Default value is <b>cs</b>.</td>
+                <tr>
+            </table>
+
+            <div class="panel panel-success">
+                <div class="panel-heading">
+                    <h5 class="panel-title">CURL Example</h5>
+                </div>
+
+                <div class="panel-body">
+                    <pre class="prettyprint">curl --form 'file=@test.zip' http://quest.ms.mff.cuni.cz:6380?language=cs</pre>
+                </div>
+            </div>
+
+            <div class="panel panel-success">
+                <div class="panel-heading">
+                    <h5 class="panel-title">JSON Response</h5>
+                </div>
+
+                <div class="panel-body">
+                    <pre class="prettyprint lang-json">{
+    "keywords": ["odhad", "výběr", "úhrn", "rozvržení", "průměr"],
+    "keyword_scores": [0.6033144150404524, 0.4630133659942532, 0.35208990668596857, 0.2560803125496312, 0.22390298829472924],
+    "morphodita_calls": 27
+}</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="footer"></div>
+</div>
+
+
+</body>
+</html>
