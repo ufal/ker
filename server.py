@@ -80,7 +80,7 @@ def post_request():
         data = {"error": e.message}
     finally:
         json_response = json.dumps(data).decode('unicode-escape')
-        print json_response
+        print json_response.encode('unicode-escape')
 
         log = {}
         log['remote_addr'] = request.remote_addr
