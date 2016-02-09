@@ -111,6 +111,8 @@ def process_file(file_path, tagger, idf_doc_count, idf_table):
         lines = lines_from_txt_file(file_path, encoding='utf-8-sig')
     elif re.match("^UTF-8 Unicode", file_info):
         lines = lines_from_txt_file(file_path, encoding='utf-8')
+    elif re.match("^ASCII text", file_info):
+        lines = lines_from_txt_file(file_path, encoding='utf-8')
     elif re.match('^XML 1.0 document', file_info) and file_path.endswith('.alto'):
         lines = lines_from_alto_file(file_path)
     elif re.match('^Zip archive data', file_info):
