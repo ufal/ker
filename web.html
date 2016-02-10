@@ -12,32 +12,14 @@
 
   <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js" type="text/javascript"> </script>
   <script type="text/javascript">
-function showDemo(){
-    $("#demo").show();
-    $("#doc").hide();
-
-    $("#demoLi").addClass("active");
-    $("#docLi").removeClass("active");
-}
-
-function showDoc() {
-    $("#doc").show();
-    $("#demo").hide();
-
-    $("#docLi").addClass("active");
-    $("#demoLi").removeClass("active");
-}
-
 function submitQuery() {
     file = $("#file").get(0).files[0];
-    //alert(file.size);
     alert(file.name);
 }
 
 $(function () {
     document.domain = "cuni.cz";
     $("#resultBox").hide();
-    showDemo();
 
     $('#header').load("https://lindat.mff.cuni.cz/common/header-services-standalone.htm");
     $('#footer').load("https://lindat.mff.cuni.cz/common/footer-services-standalone.htm");
@@ -48,8 +30,8 @@ $(function () {
         var size = file.size;
         var type = file.type;
 
-        if (size > 20000) {
-            alert('File is too big.');
+        if (size > 200000) {
+            alert('File is too big for a web demo.');
                 $(':file').val('');
         }
     });
@@ -101,34 +83,15 @@ function showResult(data) {
 
 </head>
 
-<body id="lindat-tools">
+<body id="lindat-services">
 
 <div id="header"></div>
 
-<div class="container">
-
-    <!-- breadcrumb -->
-    <ul class="breadcrumb">
-        <li><a href="http://lindat.mff.cuni.cz/">LINDAT/CLARIN</a> <span class="divider">/</span></li>
-        <li><a href="http://lindat.mff.cuni.cz/services/">Services</a> <span class="divider">/</span></li>
-        <li class="active">KER</li>
-    </ul>
+<div class="lindat-common">
+<div class="container" style="margin-left:70px;margin-right:70px">
 
     <div class="tcenter">
         <h1>KER - Keyword Extractor</h1>
-    </div>
-
-    <div class="navbar center">
-        <div class="navbar-inner">
-
-            <div class="nav-collapse">
-                <ul class="nav">
-                    <li id="demoLi"><a class="show-run-icon" href="javascript:showDemo();">Run</a></li>
-                    <li id="docLi"><a href="javascript:showDoc();">REST API Documentation</a></li>
-                    <!--<li><a class="pull-right signon" href="#"><i class="icon-user"> </i>Login</a></li>-->
-                </ul>
-            </div>
-        </div>
     </div>
 
     <div class="dropdown pull-right">
@@ -143,7 +106,7 @@ function showResult(data) {
             by <a href="http://lindat.mff.cuni.cz/services/morphodita/">Morphodita</a>:
             morphological dictionary and tagger. </p>
 
-            <fieldset>
+            <fieldset style="background:#EEE">
                 langugage: <select id="language">
                     <option>cs</option>
                     <option>en</option>
@@ -153,24 +116,24 @@ function showResult(data) {
                 <input type="button" class="btn btn-primary" id="submitButton" value="Extract keywords" />
             </fieldset>
 
-            <div id="resultBox">
-                <b>File:</b> <span id="resultFileName"></span>
+            <div id="resultBox" style="border:1px gray solid;background:#ffffe0;padding:10px;margin:3px">
                 <b>Keywords</b>
                 <ul id="keywordList"></ul>
             </div>
         </div>
 
         <div id="doc">
+            <h2>Documentation</h2>
 
-            <h4>Introduction</h4>
+            <h3>Introduction</h3>
 
             This section serves as a reference how to use KER via the REST API. The
             service supports standard HTTP request and returns its output in the
             JSON format.
 
-            <h4>Request</h4>
+            <h3>Request</h3>
 
-            <table border='1' class='table table-bordered'>
+            <table border='1' cellspacing="0" cellpadding="4">
                 <tr align="left">
                     <th>#</th>
                     <th>Parameter</th>
@@ -196,7 +159,7 @@ function showResult(data) {
 
             <div class="panel panel-success">
                 <div class="panel-heading">
-                    <h5 class="panel-title">CURL Example</h5>
+                    <h4 class="panel-title">CURL Example</h4>
                 </div>
 
                 <div class="panel-body">
@@ -206,7 +169,7 @@ function showResult(data) {
 
             <div class="panel panel-success">
                 <div class="panel-heading">
-                    <h5 class="panel-title">JSON Response</h5>
+                    <h4 class="panel-title">JSON Response</h4>
                 </div>
 
                 <div class="panel-body">
@@ -219,6 +182,7 @@ function showResult(data) {
             </div>
         </div>
     </div>
+</div>
 </div>
 
 <div id="footer"></div>
