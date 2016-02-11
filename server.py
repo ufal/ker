@@ -43,6 +43,13 @@ def show_web():
     print content
     return flask.Response(content, mimetype="text/html")
 
+@app.route('/demo', methods=['GET'])
+def show_simple_demo():
+    content = get_file("web.html")
+    content = re.sub(r"\$\(\'#header", "//", content)
+    content = re.sub(r"\$\(\'#footer", "//", content)
+    return flask.Response(content, mimetype="text/html")
+
 
 @app.route('/', methods=['POST'])
 def post_request():
