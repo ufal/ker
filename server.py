@@ -72,6 +72,22 @@ def post_request():
         elif request.args.get('language'):
             raise Exception('Unsupported language {}'.format(request.args.get('language')))
 
+        if request.args.get('threshold'):
+            try:
+                threshold = float(request.args.get('threshold'))
+            except:
+                raise Exception("Threshold \"{}\" is not valid float.".format(request.args.get("threshold")))
+        else:
+            threshold = 0.2
+
+        if request.args.get("maximum-words"):
+            try:
+                maximum_words = int(request.args.get('maximum-words'))
+            except:
+                raise Exception("Maximum number of words \"{}\" is not an integer.".format(request.args.get("maximum-words")))
+        else:
+            maximum_words = 15
+
         post_id = datetime.datetime.now().strftime("%Y-%m-%d/%H/%M-%S-")+\
                 str(random.randint(10000, 99999))
         post_dir = os.path.join(upload_dir, post_id)
@@ -81,12 +97,13 @@ def post_request():
         file_path = os.path.join(post_dir, file_name)
         file.save(os.path.join(file_path))
 
-        data, code = process_file(file_path, tagger, idf_doc_count, idf_table)
+        data, code = \
+                process_file(file_path, tagger, idf_doc_count, idf_table, threshold, maximum_words)
     except Exception as e:
         code = 400
         data = {"error": e.message}
     finally:
-        json_response = json.dumps(data).decode('unicode-escape')
+        json_response = json.dumps(data)
         print json_response.encode('unicode-escape')
 
         log = {}
@@ -101,12 +118,12 @@ def post_request():
 
         response = flask.Response(json_response,
                                   content_type='application/json; charset=utf-8')
-        response.headers.add('content-length', len(json_response))
+        response.headers.add('content-length', len(json_response.encode('utf-8')))
         response.status_code = code
         return response
 
 
-def process_file(file_path, tagger, idf_doc_count, idf_table):
+def process_file(file_path, tagger, idf_doc_count, idf_table, threshold, maximum_words):
     """
     Takes the uploaded file, detecs its type (plain text, alto XML, zip)
     and calls a parsing function accordingly. If everything succeeds it
@@ -120,7 +137,8 @@ def process_file(file_path, tagger, idf_doc_count, idf_table):
         lines = lines_from_txt_file(file_path, encoding='utf-8')
     elif re.match("^ASCII text", file_info):
         lines = lines_from_txt_file(file_path, encoding='utf-8')
-    elif re.match('^XML 1.0 document', file_info) and file_path.endswith('.alto'):
+    elif re.match('^XML 1.0 document', file_info) and \
+            (file_path.endswith('.alto') or file_path.endswith('.xml')):
         lines = lines_from_alto_file(file_path)
     elif re.match('^Zip archive data', file_info):
         lines = lines_from_zip_file(file_path)
@@ -129,7 +147,7 @@ def process_file(file_path, tagger, idf_doc_count, idf_table):
 
     if not lines:
         return {"error": "Empty file"}, 400
-    return keywords.get_keywords(lines, tagger, idf_doc_count, idf_table), 200
+    return keywords.get_keywords(lines, tagger, idf_doc_count, idf_table, threshold, maximum_words), 200
 
 
 def lines_from_txt_file(file_path, encoding='utf-8'):
@@ -162,25 +180,20 @@ def lines_from_alto_file(file_path):
             layout = c
             break
     if layout is None:
-        raise Exception("Alto XML does not contain layout object.")
+        raise Exception("XML is not ALTO file (does not contain layout object).")
     for page in layout.getchildren():
         if not page.tag.endswith("Page"):
             continue
-        for print_space in page.getchildren():
-            if not print_space.tag.endswith("PrintSpace"):
-                continue
-            for text_block in print_space.getchildren():
-                if not text_block.tag.endswith('TextBlock'):
+
+        text_lines = layout.findall(".//{http://www.loc.gov/standards/alto/ns-v2#}TextLine")
+
+        for text_line in text_lines:
+            line_words = []
+            for string in text_line.getchildren():
+                if not string.tag.endswith('String'):
                     continue
-                for text_line in text_block.getchildren():
-                    if not text_line.tag.endswith('TextLine'):
-                        continue
-                    line_words = []
-                    for string in text_line.getchildren():
-                        if not string.tag.endswith('String'):
-                            continue
-                        line_words.append(string.attrib['CONTENT'])
-                    yield " ".join(line_words)
+                line_words.append(string.attrib['CONTENT'])
+            yield " ".join(line_words)
 
 def lines_from_zip_file(file_path):
     """
@@ -192,7 +205,7 @@ def lines_from_zip_file(file_path):
 
     """
     archive = zipfile.ZipFile(file_path)
-    alto_files = [n for n in archive.namelist() if n.endswith(".alto")]
+    alto_files = [n for n in archive.namelist() if n.endswith(".alto") or n.endswith(".xml")]
     if alto_files:
         for f_name in alto_files:
             for line in lines_from_alto_file(archive.open(f_name)):

@@ -62,7 +62,7 @@ class Morphodita(object):
         return lemmas, len(self.lemmas)
 
 
-def get_keywords(lines, tagger, idf_doc_count, idf_table):
+def get_keywords(lines, tagger, idf_doc_count, idf_table, threshold, maximum_words):
     """
     Finds keywords in the provided lines of text using the tf-idf measure.
 
@@ -77,6 +77,10 @@ def get_keywords(lines, tagger, idf_doc_count, idf_table):
 
     :param idf_table: Precomputed IDF table.
     :type idf_table: dict
+
+    :param threshold: Minimum score that is acceptable for a keyword.
+
+    :param maximum_words: Maximum number of words to be returned.
 
     """
     word_stat = {}
@@ -103,7 +107,7 @@ def get_keywords(lines, tagger, idf_doc_count, idf_table):
         tf_idf[word] = tf * idf
 
     sorted_terms = sorted(word_stat.keys(), key=lambda x: -tf_idf[x])
-    keywords = sorted_terms[:2] + [t for t in  sorted_terms[2:] if tf_idf[t] >= 0.2]
+    keywords = (sorted_terms[:2] + [t for t in  sorted_terms[2:] if tf_idf[t] >= threshold])[:maximum_words]
     response['keywords'] = keywords
     response['keyword_scores'] = [tf_idf[k] for k in keywords]
     response['morphodita_calls'] = morphodita_calls

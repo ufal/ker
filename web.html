@@ -38,9 +38,21 @@ $(function () {
         }
     });
 
+    $("#maximumWords").change(function() {
+        if (!/^[1-9][0-9]*$/.test($(this).val())) {
+            $(this).val(15);
+        }
+    });
+
+    $("#threshold").change(function() {
+        if (!/^^[0-9](\.[0-9]*)?$/.test($(this).val())) {
+            $(this).val(0.2);
+        }
+    });
+
 
     $('#submitButton').click(function(){
-        var url = 'http://quest.ms.mff.cuni.cz:6380?language='+$('#language').val();
+        var url = 'http://quest.ms.mff.cuni.cz:6380?language='+$('#language').val()+"&threshold="+$('#threshold').val()+"&maximum-words="+$('#maximumWords').val();
         var formData = new FormData();
 	//formData.append("language", $("#language").val());
 
@@ -108,11 +120,16 @@ function showResult(data) {
             <h2>Demo</h2>
 
             <fieldset style="background:#EEE;padding:10px">
-                langugage: <select id="language">
+                <table cellspacing="2" cellpadding="2" style="vertical-align:center"><tr>
+                        <td>langugage:</td><td> <select id="language">
                     <option>cs</option>
                     <option>en</option>
-                </select>  <br />
-                file with content: <input id="file" type="file" /> <br />
+                </select>  </td></tr>
+                        <tr><td>tf-idf threshold:</td> <td><input size="5" id="threshold" value="0.2"/></td></tr>
+                    <tr><td>maximum number of keywords:&nbsp;&nbsp;&nbsp;</td><td><input size="5" value="15" style="margin-bottom:10px" id="maximumWords" /></td></tr>
+                </table>
+                    file with content: <i>(UTF-8 plaintext or ALTO OCR XML)</i>
+                <input id="file" type="file" /> <br />
 
                 <input type="button" class="btn btn-primary" id="submitButton" value="Extract keywords" />
             </fieldset>
@@ -130,7 +147,7 @@ function showResult(data) {
 
             This section serves as a reference how to use KER via the REST API. The
             service supports standard HTTP request and returns its output in the
-            JSON format.
+            JSON format in the UTF-8 encoding.
 
             <h3>Request</h3>
 
@@ -148,15 +165,38 @@ function showResult(data) {
                     <td>yes</td>
                     <td>file</td>
                     <td>Plain-text file, ALTO XML file or a zip archive containing multiple files.</td>
-                <tr>
+                </tr>
                 <tr align="left">
                     <td>2</td>
                     <td>language</td>
                     <td>no</td>
                     <td>string</td>
-                    <td>Language the text is in. Supported langugaes are <b>cs</b> and <b>en</b>. Default value is <b>cs</b>.</td>
+                    <td>Language the text is in. Supported langugaes are <b>cs</b> and <b>en</b>. The default value is <b>cs</b>.</td>
                 <tr>
+
+                <tr>
+                    <td>3</td>
+                    <td>threshold</td>
+                    <td>no</td>
+                    <td>float</td>
+                    <td>The minimum value of tf-idf score of a term to be considered a keyword. The default value is 0.2.</td>
+                </tr>
+
+                <tr>
+                    <td>4</td>
+                    <td>maximum-words</td>
+                    <td>no</td>
+                    <td>int</td>
+                    <td>The maximum number of words that can be returned. The default value is 15.</td>
+                </tr>
             </table>
+
+            <br />
+
+            <p>All text is expected in UTF-8. Regardless the <i>threshold</i> and
+            <i>maximum-words</i> fields, at least two keywords are always
+            returned.</p>
+
 
             <br />
 
