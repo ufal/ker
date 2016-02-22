@@ -63,6 +63,11 @@ def post_request():
     json_response = None
 
     try:
+        post_id = datetime.datetime.now().strftime("%Y-%m-%d/%H/%M-%S-")+\
+                str(random.randint(10000, 99999))
+        post_dir = os.path.join(upload_dir, post_id)
+        os.makedirs(post_dir)
+
         if request.args.get('language') == 'en':
             tagger = en_tagger
             idf_doc_count = en_idf_doc_count
@@ -88,10 +93,6 @@ def post_request():
         else:
             maximum_words = 15
 
-        post_id = datetime.datetime.now().strftime("%Y-%m-%d/%H/%M-%S-")+\
-                str(random.randint(10000, 99999))
-        post_dir = os.path.join(upload_dir, post_id)
-        os.makedirs(post_dir)
 
         file_name = secure_filename(file.filename)
         file_path = os.path.join(post_dir, file_name)
