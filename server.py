@@ -54,7 +54,18 @@ def show_simple_demo():
 @app.route('/', methods=['POST'])
 def post_request():
     start_time = datetime.datetime.now()
-    file = request.files['file']
+    if 'file' in request.files:
+        file = request.files['file']
+    else:
+        class _file_wrapper(object):
+            def __init__(self, data):
+                self._data = data
+                import uuid
+                self.filename = str(uuid.uuid4())
+            def save(self, path):
+                with codecs.open(path, mode="w+", encoding="utf-8") as fout:
+                    fout.write(self._data)
+        file = _file_wrapper(request.form["data"])
 
     tagger = cs_tagger
     idf_doc_count = cs_idf_doc_count
