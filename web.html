@@ -61,8 +61,7 @@ $(function () {
             formData.append("file", file)
 	}
 	else {
-	    alert("Please, choose the file first.");
-            return;
+        formData.append("data", $("#data").val());
 	}
 
         $.ajax({
@@ -130,6 +129,8 @@ function showResult(data) {
                 </table>
                     file with content: <i>(UTF-8 plaintext or ALTO OCR XML)</i>
                 <input id="file" type="file" /> <br />
+
+                <textarea style="margin-bottom: 30px; width:100%;height: 150px;" id="data" placeholder="You can also place your text directly here..."></textarea>
 
                 <input type="button" class="btn btn-primary" id="submitButton" value="Extract keywords" />
             </fieldset>
