@@ -6,9 +6,10 @@ import regex as re
 import sys, os, math
 import cPickle as pickle
 
-stopwords = set((u"odstavec kapitola obsah část cvičení metoda druh rovnice"+
-    u"rejstřík literatura seznam základ příklad stanovení definice výpočet"+
-    u"csc prof ing doc"+
+stopwords = set((u"odstavec kapitola obsah část cvičení metoda druh rovnice "+
+    u"rejstřík literatura seznam základ příklad stanovení definice výpočet "+
+    u"csc prof ing doc bibilografie příloha "+
+    u"index bibliography appendix preface summary "+
     u"postup úvod poznámka závěr úloha zadání procvičení").split(" "))
 
 def clean_lines(lines):
