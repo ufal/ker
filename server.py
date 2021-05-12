@@ -1,13 +1,14 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import flask
 from flask import Flask
 from flask import request
-from werkzeug import secure_filename
+from werkzeug.utils import secure_filename
 import os, random, datetime, codecs
 import sys, json, magic
-import cPickle as pickle
-import regex as re
+import pickle
+#import regex as re
+import re
 import keywords
 import argparse
 import xml.etree.ElementTree
@@ -40,7 +41,7 @@ def get_file(file_name):
 @app.route('/web', methods=['GET'])
 def show_web():
     content = get_file("web.html")
-    print content
+    print(content)
     return flask.Response(content, mimetype="text/html")
 
 @app.route('/demo', methods=['GET'])
@@ -116,7 +117,7 @@ def post_request():
         data = {"error": e.message}
     finally:
         json_response = json.dumps(data)
-        print json_response.encode('unicode-escape')
+        print(json_response.encode('unicode-escape'))
 
         log = {}
         log['remote_addr'] = request.remote_addr
@@ -241,7 +242,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if os.path.exists(args.cs_morphodita):
-        cs_tagger = keywords.Morphodita(args.cs_morphodita)
+        cs_tagger = keywords.Morphodita(args.cs_morphodita, language="cs")
     else:
         print >> sys.stderr, "File with Czech Morphodita model does not exist: {}".format(args.cs_morphodita)
         exit(1)
@@ -256,7 +257,7 @@ if __name__ == '__main__':
         exit(1)
 
     if os.path.exists(args.en_morphodita):
-        en_tagger = keywords.Morphodita(args.en_morphodita)
+        en_tagger = keywords.Morphodita(args.en_morphodita, language="en")
     else:
         print >> sys.stderr, "File with English Morphodita model does not exist: {}".format(args.en_morphodita)
         exit(1)
