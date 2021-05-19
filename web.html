@@ -54,15 +54,14 @@ $(function () {
     $('#submitButton').click(function(){
         var url = 'https://lindat.mff.cuni.cz/services/ker?language='+$('#language').val()+"&threshold="+$('#threshold').val()+"&maximum-words="+$('#maximumWords').val();
         var formData = new FormData();
-	//formData.append("language", $("#language").val());
 
-	if ($("#file").val()) {
-            var file = $("#file")[0].files[0];
-            formData.append("file", file)
-	}
-	else {
-        formData.append("data", $("#data").val());
-	}
+        if ($("#file").val()) {
+                var file = $("#file")[0].files[0];
+                formData.append("file", file)
+        }
+        else {
+            formData.append("data", $("#data").val());
+        }
 
         $.ajax({
             url: url,

@@ -4,10 +4,14 @@ import flask
 from flask import Flask
 from flask import request
 from werkzeug.utils import secure_filename
-import os, random, datetime, codecs
-import sys, json, magic
+import os
+import random
+import datetime
+import codecs
+import sys
+import json
+import magic
 import pickle
-#import regex as re
 import re
 import keywords
 import argparse
@@ -24,12 +28,15 @@ en_tagger = None
 en_idf_doc_count = None
 en_idf_table = None
 
+
 @app.route('/')
 def index():
     return "{}\n"
 
+
 def root_dir():  # pragma: no cover
-        return os.path.abspath(os.path.dirname(__file__))
+    return os.path.abspath(os.path.dirname(__file__))
+
 
 def get_file(file_name):
     try:
@@ -38,11 +45,13 @@ def get_file(file_name):
     except IOError as exc:
         return str(exc)
 
+
 @app.route('/web', methods=['GET'])
 def show_web():
     content = get_file("web.html")
     print(content)
     return flask.Response(content, mimetype="text/html")
+
 
 @app.route('/demo', methods=['GET'])
 def show_simple_demo():
@@ -63,6 +72,7 @@ def post_request():
                 self._data = data
                 import uuid
                 self.filename = str(uuid.uuid4())
+
             def save(self, path):
                 with codecs.open(path, mode="w+", encoding="utf-8") as fout:
                     fout.write(self._data)
@@ -75,8 +85,8 @@ def post_request():
     json_response = None
 
     try:
-        post_id = datetime.datetime.now().strftime("%Y-%m-%d/%H/%M-%S-")+\
-                str(random.randint(10000, 99999))
+        post_id = datetime.datetime.now().strftime("%Y-%m-%d/%H/%M-%S-") +\
+            str(random.randint(10000, 99999))
         post_dir = os.path.join(upload_dir, post_id)
         os.makedirs(post_dir)
 
@@ -87,31 +97,36 @@ def post_request():
         elif request.args.get('language') == 'cs':
             pass
         elif request.args.get('language'):
-            raise Exception('Unsupported language {}'.format(request.args.get('language')))
+            raise Exception(
+                'Unsupported language {}'.format(
+                    request.args.get('language')))
 
         if request.args.get('threshold'):
             try:
                 threshold = float(request.args.get('threshold'))
-            except:
-                raise Exception("Threshold \"{}\" is not valid float.".format(request.args.get("threshold")))
+            except BaseException:
+                raise Exception(
+                    "Threshold \"{}\" is not valid float.".format(
+                        request.args.get("threshold")))
         else:
             threshold = 0.2
 
         if request.args.get("maximum-words"):
             try:
                 maximum_words = int(request.args.get('maximum-words'))
-            except:
-                raise Exception("Maximum number of words \"{}\" is not an integer.".format(request.args.get("maximum-words")))
+            except BaseException:
+                raise Exception(
+                    "Maximum number of words \"{}\" is not an integer.".format(
+                        request.args.get("maximum-words")))
         else:
             maximum_words = 15
-
 
         file_name = secure_filename(file.filename)
         file_path = os.path.join(post_dir, file_name)
         file.save(os.path.join(file_path))
 
-        data, code = \
-                process_file(file_path, tagger, idf_doc_count, idf_table, threshold, maximum_words)
+        data, code = process_file(
+            file_path, tagger, idf_doc_count, idf_table, threshold, maximum_words)
     except Exception as e:
         code = 400
         data = {"error": e.message}
@@ -124,19 +139,29 @@ def post_request():
         log['response_json'] = data
         log['response_code'] = code
         log['time'] = start_time.strftime("%Y-%m-%d %H:%M:%S")
-        log['duration'] = (datetime.datetime.now() - start_time).total_seconds()
+        log['duration'] = (
+            datetime.datetime.now() -
+            start_time).total_seconds()
         f_log = open(os.path.join(post_dir, "log.json"), 'w')
         json.dump(log, f_log)
         f_log.close()
 
-        response = flask.Response(json_response,
-                                  content_type='application/json; charset=utf-8')
-        response.headers.add('content-length', len(json_response.encode('utf-8')))
+        response = flask.Response(
+            json_response,
+            content_type='application/json; charset=utf-8')
+        response.headers.add('content-length',
+                             len(json_response.encode('utf-8')))
         response.status_code = code
         return response
 
 
-def process_file(file_path, tagger, idf_doc_count, idf_table, threshold, maximum_words):
+def process_file(
+        file_path,
+        tagger,
+        idf_doc_count,
+        idf_table,
+        threshold,
+        maximum_words):
     """
     Takes the uploaded file, detecs its type (plain text, alto XML, zip)
     and calls a parsing function accordingly. If everything succeeds it
@@ -160,7 +185,8 @@ def process_file(file_path, tagger, idf_doc_count, idf_table, threshold, maximum
 
     if not lines:
         return {"error": "Empty file"}, 400
-    return keywords.get_keywords(lines, tagger, idf_doc_count, idf_table, threshold, maximum_words), 200
+    return keywords.get_keywords(
+        lines, tagger, idf_doc_count, idf_table, threshold, maximum_words), 200
 
 
 def lines_from_txt_file(file_path, encoding='utf-8'):
@@ -170,7 +196,7 @@ def lines_from_txt_file(file_path, encoding='utf-8'):
     :param file_path: Path to the alto file or a file-like object.
 
     """
-    if type(file_path) is str:
+    if isinstance(file_path, str):
         f = codecs.open(file_path, 'r', encoding)
     else:
         f = file_path
@@ -193,12 +219,14 @@ def lines_from_alto_file(file_path):
             layout = c
             break
     if layout is None:
-        raise Exception("XML is not ALTO file (does not contain layout object).")
+        raise Exception(
+            "XML is not ALTO file (does not contain layout object).")
     for page in layout.getchildren():
         if not page.tag.endswith("Page"):
             continue
 
-        text_lines = layout.findall(".//{http://www.loc.gov/standards/alto/ns-v2#}TextLine")
+        text_lines = layout.findall(
+            ".//{http://www.loc.gov/standards/alto/ns-v2#}TextLine")
 
         for text_line in text_lines:
             line_words = []
@@ -207,6 +235,7 @@ def lines_from_alto_file(file_path):
                     continue
                 line_words.append(string.attrib['CONTENT'])
             yield " ".join(line_words)
+
 
 def lines_from_zip_file(file_path):
     """
@@ -218,7 +247,8 @@ def lines_from_zip_file(file_path):
 
     """
     archive = zipfile.ZipFile(file_path)
-    alto_files = [n for n in archive.namelist() if n.endswith(".alto") or n.endswith(".xml")]
+    alto_files = [n for n in archive.namelist() if n.endswith(".alto")
+                  or n.endswith(".xml")]
     if alto_files:
         for f_name in alto_files:
             for line in lines_from_alto_file(archive.open(f_name)):
@@ -226,25 +256,41 @@ def lines_from_zip_file(file_path):
     else:
         txt_files = [n for n in archive.namelist() if n.endswith(".txt")]
         if not txt_files:
-            raise Exception("Archive contains neither alto files nor text files.")
+            raise Exception(
+                "Archive contains neither alto files nor text files.")
         for f_name in txt_files:
             for line in lines_from_txt_file(archive.open(f_name)):
                 yield line
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Runs the KER server.')
-    parser.add_argument("--cs-morphodita", help="Path to a Czech tagger model for Morphodita.", required=True)
+    parser.add_argument(
+        "--cs-morphodita",
+        help="Path to a Czech tagger model for Morphodita.",
+        required=True)
     parser.add_argument("--cs-idf", help="Czech idf model.", required=True)
-    parser.add_argument("--en-morphodita", help="Path to a English tagger model for Morphodita.", required=True)
+    parser.add_argument(
+        "--en-morphodita",
+        help="Path to a English tagger model for Morphodita.",
+        required=True)
     parser.add_argument("--en-idf", help="English idf model.", required=True)
-    parser.add_argument("--port", help="Port the server runs on", type=int, default=5000)
-    parser.add_argument("--host", help="IP address the server will run at", type=str, default="127.0.0.1")
+    parser.add_argument(
+        "--port",
+        help="Port the server runs on",
+        type=int,
+        default=5000)
+    parser.add_argument(
+        "--host",
+        help="IP address the server will run at",
+        type=str,
+        default="127.0.0.1")
     args = parser.parse_args()
 
     if os.path.exists(args.cs_morphodita):
         cs_tagger = keywords.Morphodita(args.cs_morphodita, language="cs")
     else:
-        print >> sys.stderr, "File with Czech Morphodita model does not exist: {}".format(args.cs_morphodita)
+        print(f"File with Czech Morphodita model does not exist: {args.cs_morphodita}", file=sys.stderr)
         exit(1)
 
     if os.path.exists(args.cs_idf):
@@ -253,13 +299,13 @@ if __name__ == '__main__':
         cs_idf_table = pickle.load(f_idf)
         f_idf.close()
     else:
-        print >> sys.stderr, "File with Czech IDF model does not exist: {}".format(args.cs_idf)
+        print(f"File with Czech IDF model does not exist: {args.cs_idf}", file=sys.stderr)
         exit(1)
 
     if os.path.exists(args.en_morphodita):
         en_tagger = keywords.Morphodita(args.en_morphodita, language="en")
     else:
-        print >> sys.stderr, "File with English Morphodita model does not exist: {}".format(args.en_morphodita)
+        print(f"File with English Morphodita model does not exist: {args.en_morphodita}", file=sys.stderr)
         exit(1)
 
     if os.path.exists(args.en_idf):
@@ -268,7 +314,7 @@ if __name__ == '__main__':
         en_idf_table = pickle.load(f_idf)
         f_idf.close()
     else:
-        print >> sys.stderr, "File with English IDF model does not exist: {}".format(args.en_idf)
+        print(f"File with English IDF model does not exist: {args.en_idf}", file=sys.stderr)
         exit(1)
 
     app.run(debug=True, host=args.host, port=args.port)
