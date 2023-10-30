@@ -8,9 +8,9 @@
   <meta content="Language Resources, Infrastructure, Research,           Natural Language Processing, Multimedia, Czech language, Computational           Linguistics, Speech, Text, Corpus, Corpora" name="keywords" />
   <meta content="LINDAT CLARIN Research Infrastructure" name="description" />
 
-  <link rel="stylesheet" href="https://lindat.mff.cuni.cz/common/public/css/lindat.css" type="text/css" />
+  <!--<link rel="stylesheet" href="https://lindat.mff.cuni.cz/common/public/css/lindat.css" type="text/css" />
   <link rel="stylesheet" href="https://lindat.mff.cuni.cz/templates/lindat/bootstrap/css/bootstrap.min.css" type="text/css" />
-  <link rel="stylesheet" href="https://lindat.mff.cuni.cz/templates/lindat/bootstrap/css/ufal-theme.css" type="text/css" />
+  <link rel="stylesheet" href="https://lindat.mff.cuni.cz/templates/lindat/bootstrap/css/ufal-theme.css" type="text/css" />-->
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js" type="text/javascript"> </script>
   <script type="text/javascript">
@@ -20,7 +20,7 @@ function submitQuery() {
 }
 
 $(function () {
-    document.domain = "cuni.cz";
+    //document.domain = "cuni.cz";
     $("#resultBox").hide();
 
     $('#header').load("https://lindat.mff.cuni.cz/common/header-services-standalone.htm");
@@ -52,18 +52,20 @@ $(function () {
 
 
     $('#submitButton').click(function(){
-        var url = 'https://lindat.mff.cuni.cz/services/ker?language='+$('#language').val()+"&threshold="+$('#threshold').val()+"&maximum-words="+$('#maximumWords').val();
+        //var url = 'https://lindat.mff.cuni.cz/services/ker?language='+$('#language').val()+"&threshold="+$('#threshold').val()+"&maximum-words="+$('#maximumWords').val();
+        var url = 'http://localhost:5000?language='+$('#language').val()+"&threshold="+$('#threshold').val()+"&maximum-words="+$('#maximumWords').val();
         var formData = new FormData();
-	//formData.append("language", $("#language").val());
+        console.log(formData);
 
-	if ($("#file").val()) {
-            var file = $("#file")[0].files[0];
-            formData.append("file", file)
-	}
-	else {
-        formData.append("data", $("#data").val());
-	}
+        if ($("#file").val()) {
+                var file = $("#file")[0].files[0];
+                formData.append("file", file)
+        }
+        else {
+            formData.append("data", $("#data").val());
+        }
 
+        console.log(formData);
         $.ajax({
             url: url,
             type: 'POST',
