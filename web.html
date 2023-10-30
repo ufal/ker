@@ -32,8 +32,8 @@ $(function () {
         var size = file.size;
         var type = file.type;
 
-        if (size > 200000) {
-            alert('File is too big for a web demo.');
+        if (size > 2000000) {
+            alert('Maximum 2MB are allowed for web interface. Use API for bigger files.');
                 $(':file').val('');
         }
     });
@@ -116,9 +116,7 @@ function showResult(data) {
             with the idf tables trained on texts from
             Wikipedia. To deal with the data sparsity, texts are preprocessed
             by <a href="http://lindat.mff.cuni.cz/services/morphodita/">Morphodita</a>:
-            morphological dictionary and tagger. </p>
-
-            <h2>Demo</h2>
+            morphological dictionary and tagger. The web interface is limited to file of at most 2MB, please use the API for bigger files. </p>
 
             <fieldset style="background:#EEE;padding:10px">
                 <table cellspacing="2" cellpadding="2" style="vertical-align:center"><tr>
